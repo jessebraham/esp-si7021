@@ -27,44 +27,22 @@ esp_err_t
 readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 {
     const uint8_t command = SI7021_READ_RH_HOLD;
-    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR, &command, 1);
 
-    if (ret != ESP_OK)
-        return ret;
+    esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
+                                      &command, 1,
+                                      humidity, &_rh_code_to_pct);
 
-    vTaskDelay(100 / portTICK_RATE_MS);
-
-    uint8_t buf[2];
-    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
-
-    if (ret != ESP_OK)
-        return ret;
-
-    uint16_t bytes = buf[0] << 8 | buf[1];
-    *humidity = _rh_code_to_pct(bytes);
-
-    return ESP_OK;
+    return ret;
 }
 
 esp_err_t
 readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
 {
     const uint8_t command = SI7021_READ_TEMP_HOLD;
-    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR, &command, 1);
 
-    if (ret != ESP_OK)
-        return ret;
-
-    vTaskDelay(100 / portTICK_RATE_MS);
-
-    uint8_t buf[2];
-    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
-
-    if (ret != ESP_OK)
-        return ret;
-
-    uint16_t bytes = buf[0] << 8 | buf[1];
-    *temperature = _temp_code_to_celsius(bytes);
+    esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
+                                      &command, 1,
+                                      temperature, &_temp_code_to_celsius);
 
     return ESP_OK;
 }
@@ -73,21 +51,10 @@ esp_err_t
 readTemperatureAfterHumidity(const i2c_port_t i2c_num, int32_t *temperature)
 {
     const uint8_t command = SI7021_READ_TEMP_PREV_RH;
-    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR, &command, 1);
 
-    if (ret != ESP_OK)
-        return ret;
-
-    vTaskDelay(100 / portTICK_RATE_MS);
-
-    uint8_t buf[2];
-    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
-
-    if (ret != ESP_OK)
-        return ret;
-
-    uint16_t bytes = buf[0] << 8 | buf[1];
-    *temperature = _temp_code_to_celsius(bytes);
+    esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
+                                      &command, 1,
+                                      temperature, &_temp_code_to_celsius);
 
     return ESP_OK;
 }
@@ -109,6 +76,14 @@ readSensors(const i2c_port_t i2c_num, struct si7021_reading *sensor_data)
 }
 
 // device identification and information
+
+esp_err_t
+readDeviceId(const i2c_port_t i2c_num, uint8_t *id)
+{
+    // TODO: implement me
+
+    return ESP_OK;
+}
 
 esp_err_t
 readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
@@ -133,6 +108,14 @@ readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
 }
 
 // other miscellaneous features
+
+esp_err_t
+setPrecision(const i2c_port_t i2c_num, const uint8_t setting)
+{
+    // TODO: implement me
+
+    return ESP_OK;
+}
 
 esp_err_t
 setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status)
@@ -182,8 +165,42 @@ softwareReset(const i2c_port_t i2c_num)
 // INTERNAL FUNCTIONS
 
 esp_err_t
+_getSensorReading(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                  const uint8_t *i2c_command, const size_t nbytes,
+                  int32_t *output, int32_t (*fn)(const uint16_t))
+{
+    // write the specified number of provided command bytes to the i2c queue,
+    // targetting the address of the Si7021.
+    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
+                                       i2c_command, nbytes);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // delay for 100ms between write and read calls, and the sensor can take
+    // up to [VALUE NEEDED]ms to respond.
+    vTaskDelay(100 / portTICK_RATE_MS);
+
+    // all sensor readings return a 16-bit value for this sensor, so read the
+    // pair of bytes.
+    uint8_t buf[2];
+    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // re-assemble the bytes, and call the specified code-conversion function
+    // to finally retrieve our final sensor reading value, writing it out to
+    // the output pointer.
+    uint16_t bytes = buf[0] << 8 | buf[1];
+    *output = fn(bytes);
+
+    return ESP_OK;
+}
+
+esp_err_t
 _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-              const uint8_t *i2c_command, const size_t nbytes)
+                   const uint8_t *i2c_command, const size_t nbytes)
 {
     // create and initialize a command link prior to commanding the i2c master
     // to generate a start signal.

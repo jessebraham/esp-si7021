@@ -91,7 +91,11 @@ esp_err_t readTemperatureAfterHumidity(const i2c_port_t i2c_num,
 esp_err_t readSensors(const i2c_port_t i2c_num,
                       struct si7021_reading *sensor_data);
 
+esp_err_t readDeviceId(const i2c_port_t i2c_num, uint8_t *id);
+
 esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
+
+esp_err_t setPrecision(const i2c_port_t i2c_num, const uint8_t setting);
 
 esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
 
@@ -101,6 +105,10 @@ esp_err_t softwareReset(const i2c_port_t i2c_num);
 
 //
 // internal
+
+esp_err_t _getSensorReading(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                            const uint8_t *i2c_command, const size_t nbytes,
+                            int32_t *output, int32_t (*fn)(const uint16_t));
 
 esp_err_t _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                              const uint8_t *i2c_command, const size_t nbytes);
