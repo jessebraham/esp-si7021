@@ -93,9 +93,31 @@ readSensors(const i2c_port_t i2c_num, struct si7021_reading *sensor_data)
 // device identification and information
 
 esp_err_t
-readDeviceId(const i2c_port_t i2c_num, uint8_t *id)
+readSerialNumber(const i2c_port_t i2c_num, uint8_t *serial)
 {
-    // TODO: implement me
+    // to retrieve the serial number of the sensor, we need to write out the
+    // pair of command bytes.
+    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
+                                       READ_ID_SECOND_ACCESS, 2);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // delay for 100ms between write and read calls, and the sensor can take
+    // up to [VALUE NEEDED]ms to respond.
+    vTaskDelay(100 / portTICK_RATE_MS);
+
+    // the serial number command returns a 32-bit value, so read the four
+    // bytes.
+    uint8_t buf[4];
+    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 4);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // the first byte of the response (SNB_3) is the serial number. write the
+    // value to the serial pointer.
+    *serial = buf[0];
 
     return ESP_OK;
 }

@@ -91,7 +91,7 @@ esp_err_t readTemperatureAfterHumidity(const i2c_port_t i2c_num,
 esp_err_t readSensors(const i2c_port_t i2c_num,
                       struct si7021_reading *sensor_data);
 
-esp_err_t readDeviceId(const i2c_port_t i2c_num, uint8_t *id);
+esp_err_t readSerialNumber(const i2c_port_t i2c_num, uint8_t *serial);
 
 esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
 
