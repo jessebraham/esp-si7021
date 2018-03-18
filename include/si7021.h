@@ -28,6 +28,7 @@
 #define ACK_CHECK_DIS               0x0
 #define ACK_VAL                     0x0
 #define NACK_VAL                    0x1
+#define I2C_TIMEOUT_MS              1000
 
 #define SI7021_I2C_ADDR             0x40
 
@@ -37,6 +38,9 @@
 #define SI7021_READ_TEMP_HOLD       0xE3
 #define SI7021_READ_TEMP_NOHOLD     0xF3
 #define SI7021_READ_TEMP_PREV_RH    0xE0
+
+#define SI7021_HEATER_ON            0x3E
+#define SI7021_HEATER_OFF           0x3A
 
 #define SI7021_RESET                0xFE
 
@@ -86,11 +90,20 @@ esp_err_t readTemperatureAfterHumidity(const i2c_port_t i2c_num,
 esp_err_t readSensors(const i2c_port_t i2c_num,
                       struct si7021_reading *sensor_data);
 
+esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
+
+esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
+
+esp_err_t getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status);
 
 // private
 
 esp_err_t _writeCommand(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                         const uint8_t i2c_command);
+
+esp_err_t _writeCommandMulti(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                             const uint8_t i2c_command0,
+                             const uint8_t i2c_command1);
 
 esp_err_t _readResults(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                        uint16_t *bytes);
