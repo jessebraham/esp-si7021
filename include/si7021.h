@@ -95,13 +95,14 @@ esp_err_t readSerialNumber(const i2c_port_t i2c_num, uint8_t *serial);
 
 esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
 
-esp_err_t setPrecision(const i2c_port_t i2c_num, const uint8_t setting);
 
-esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
+esp_err_t softwareReset(const i2c_port_t i2c_num);
+
+esp_err_t setPrecision(const i2c_port_t i2c_num, const uint8_t setting);
 
 esp_err_t getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status);
 
-esp_err_t softwareReset(const i2c_port_t i2c_num);
+esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
 
 //
 // internal

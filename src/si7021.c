@@ -155,26 +155,24 @@ readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
 // other miscellaneous features
 
 esp_err_t
+softwareReset(const i2c_port_t i2c_num)
+{
+    const uint8_t command = SI7021_RESET;
+
+    // in order to perform a software reset on the sensor, we simply need to
+    // write out the single command byte.
+    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
+                                       &command, 1);
+
+    return ret;
+}
+
+esp_err_t
 setPrecision(const i2c_port_t i2c_num, const uint8_t setting)
 {
     // TODO: implement me
 
     return ESP_OK;
-}
-
-esp_err_t
-setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status)
-{
-    // to set the heater status, we need to write out the write register
-    // command as well as the status of the heater to apply.
-    const uint8_t command[] = { SI7021_WRITE_USER_REG, status };
-
-    // simply write out the two bytes defined above to set the status of the
-    // heater.
-    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
-                                       command, 2);
-
-    return ret;
 }
 
 esp_err_t
@@ -209,14 +207,16 @@ getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status)
 }
 
 esp_err_t
-softwareReset(const i2c_port_t i2c_num)
+setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status)
 {
-    const uint8_t command = SI7021_RESET;
+    // to set the heater status, we need to write out the write register
+    // command as well as the status of the heater to apply.
+    const uint8_t command[] = { SI7021_WRITE_USER_REG, status };
 
-    // in order to perform a software reset on the sensor, we simply need to
-    // write out the single command byte.
+    // simply write out the two bytes defined above to set the status of the
+    // heater.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
-                                       &command, 1);
+                                       command, 2);
 
     return ret;
 }
