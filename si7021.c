@@ -26,8 +26,12 @@
 esp_err_t
 readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 {
+    // TODO: implement a way of specifying HOLD or NOHOLD
     const uint8_t command = SI7021_READ_RH_HOLD;
 
+    // read the relative humidity from the sensor. write the value returned
+    // out to the humidity pointer, and use the _rh_code_to_pct function to
+    // convert the humidity code to a percentage value.
     esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
                                       &command, 1,
                                       humidity, &_rh_code_to_pct);
@@ -38,13 +42,17 @@ readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 esp_err_t
 readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
 {
+    // TODO: implement a way of specifying HOLD or NOHOLD
     const uint8_t command = SI7021_READ_TEMP_HOLD;
 
+    // read the temperature from the sensor. write the value returned out to
+    // the temperature pointer, and use the _temp_code_to_celsius function to
+    // convert the temperature code to a value in degrees celsius.
     esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
                                       &command, 1,
                                       temperature, &_temp_code_to_celsius);
 
-    return ESP_OK;
+    return ret;
 }
 
 esp_err_t
@@ -52,27 +60,34 @@ readTemperatureAfterHumidity(const i2c_port_t i2c_num, int32_t *temperature)
 {
     const uint8_t command = SI7021_READ_TEMP_PREV_RH;
 
+    // read the temperature from the sensor. write the value returned out to
+    // the temperature pointer, and use the _temp_code_to_celsius function to
+    // convert the temperature code to a value in degrees celsius.
     esp_err_t ret = _getSensorReading(i2c_num, SI7021_I2C_ADDR,
                                       &command, 1,
                                       temperature, &_temp_code_to_celsius);
 
-    return ESP_OK;
+    return ret;
 }
 
 esp_err_t
 readSensors(const i2c_port_t i2c_num, struct si7021_reading *sensor_data)
 {
+    // read the sensor's value for relative humidity, converting the resulting
+    // value to percent. write the value out to the sensor data struct's
+    // humidity property.
     esp_err_t ret = readHumidity(i2c_num, &sensor_data->humidity);
 
     if (ret != ESP_OK)
         return ret;
 
+    // read the sensor's value for temperature, using the value read in the
+    // previous call for humidity. convert the resulting value to degrees
+    // celsius. write the value out to the sensor data struct's temperature
+    // property.
     ret = readTemperatureAfterHumidity(i2c_num, &sensor_data->temperature);
 
-    if (ret != ESP_OK)
-        return ret;
-
-    return ESP_OK;
+    return ret;
 }
 
 // device identification and information
@@ -88,20 +103,28 @@ readDeviceId(const i2c_port_t i2c_num, uint8_t *id)
 esp_err_t
 readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
 {
+    // to retrieve the firmware revision of the sensor, we need to write out
+    // the pair of command bytes.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        READ_FW_REVISION, 2);
 
     if (ret != ESP_OK)
         return ret;
 
+    // delay for 100ms between write and read calls, and the sensor can take
+    // up to [VALUE NEEDED]ms to respond.
     vTaskDelay(100 / portTICK_RATE_MS);
 
+    // the firmware revision command returns a 16-bit value, so read the pair
+    // of bytes.
     uint8_t buf[2];
     ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
 
     if (ret != ESP_OK)
         return ret;
 
+    // we're only concerned with the first of the two bytes. store the value
+    // of the first byte in the revision pointer.
     *revision = buf[0];
 
     return ESP_OK;
@@ -120,7 +143,12 @@ setPrecision(const i2c_port_t i2c_num, const uint8_t setting)
 esp_err_t
 setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status)
 {
+    // to set the heater status, we need to write out the write register
+    // command as well as the status of the heater to apply.
     const uint8_t command[] = { SI7021_WRITE_USER_REG, status };
+
+    // simply write out the two bytes defined above to set the status of the
+    // heater.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        command, 2);
 
@@ -131,20 +159,28 @@ esp_err_t
 getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status)
 {
     const uint8_t command = SI7021_READ_USER_REG;
+
+    // write the single read register command byte to the i2c bus.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        &command, 1);
 
     if (ret != ESP_OK)
         return ret;
 
+    // delay for 100ms between write and read calls, and the sensor can take
+    // up to [VALUE NEEDED]ms to respond.
     vTaskDelay(100 / portTICK_RATE_MS);
 
+    // the heater status command returns a 16-bit value, so read the pair of
+    // bytes.
     uint8_t buf[2];
     ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
 
     if (ret != ESP_OK)
         return ret;
 
+    // the first of the two bytes is the status of the heater, so write the
+    // value out to the status pointer.
     *status = buf[0];
 
     return ESP_OK;
@@ -154,6 +190,9 @@ esp_err_t
 softwareReset(const i2c_port_t i2c_num)
 {
     const uint8_t command = SI7021_RESET;
+
+    // in order to perform a software reset on the sensor, we simply need to
+    // write out the single command byte.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        &command, 1);
 
@@ -169,7 +208,7 @@ _getSensorReading(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                   const uint8_t *i2c_command, const size_t nbytes,
                   int32_t *output, int32_t (*fn)(const uint16_t))
 {
-    // write the specified number of provided command bytes to the i2c queue,
+    // write the specified number of provided command bytes to the i2c bus,
     // targetting the address of the Si7021.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        i2c_command, nbytes);
