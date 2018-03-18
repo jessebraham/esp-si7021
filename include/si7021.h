@@ -65,10 +65,10 @@ struct si7021_reading
 // ---------------------------------------------------------------------------
 // CONSTANTS
 
-static const uint8_t READ_ID_FIRST_BYTE[]  = { 0xFA, 0x0F };
-static const uint8_t READ_ID_SECOND_BYTE[] = { 0xFC, 0xC9 };
+static const uint8_t READ_ID_FIRST_ACCESS[]  = { 0xFA, 0x0F };
+static const uint8_t READ_ID_SECOND_ACCESS[] = { 0xFC, 0xC9 };
 
-static const uint8_t READ_FW_REVISION[]    = { 0x84, 0xB8 };
+static const uint8_t READ_FW_REVISION[]      = { 0x84, 0xB8 };
 
 
 // ---------------------------------------------------------------------------
@@ -78,6 +78,7 @@ static const uint8_t READ_FW_REVISION[]    = { 0x84, 0xB8 };
 // ---------------------------------------------------------------------------
 // FUNCTION PROTOTYPES
 
+//
 // public
 
 esp_err_t readHumidity(const i2c_port_t i2c_num, int32_t *humidity);
@@ -96,6 +97,9 @@ esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
 
 esp_err_t getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status);
 
+esp_err_t softwareReset(const i2c_port_t i2c_num);
+
+//
 // private
 
 esp_err_t _writeCommand(const i2c_port_t i2c_num, const uint8_t i2c_addr,

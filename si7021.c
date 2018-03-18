@@ -157,6 +157,16 @@ getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status)
     return ESP_OK;
 }
 
+esp_err_t
+softwareReset(const i2c_port_t i2c_num)
+{
+    esp_err_t ret = _writeCommand(i2c_num, SI7021_I2C_ADDR,
+                                  SI7021_RESET);
+
+    return ret;
+}
+
+
 // ---------------------------------------------------------------------------
 // PRIVATE FUNCTIONS
 
@@ -219,18 +229,28 @@ _readResults(const i2c_port_t i2c_num, const uint8_t i2c_addr,
 {
     uint8_t msb, lsb;
 
+    // create and initialize a command link prior to commanding the i2c master
+    // to generate a start signal.
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
 
+    // write the 7-bit address of the sensor to the queue, using the last bit
+    // to indicate we are performing a read. read both the most and least
+    // significant bytes from the 16-bit response.
     i2c_master_write_byte(cmd, i2c_addr << 1 | I2C_MASTER_READ, ACK_CHECK_EN);
     i2c_master_read_byte(cmd, &msb, ACK_VAL);
     i2c_master_read_byte(cmd, &lsb, NACK_VAL);
 
+    // command the i2c master to generate a stop signal. send all queued
+    // commands, blocking until all commands have been sent. note that this is
+    // *not* thread-safe. finally, free the i2c command link.
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd,
                                          I2C_TIMEOUT_MS / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
 
+    // write out the bytes read to the provided address in memory, in their
+    // appropriate order.
     *bytes = msb << 8 | lsb;
 
     return ret;
@@ -239,6 +259,7 @@ _readResults(const i2c_port_t i2c_num, const uint8_t i2c_addr,
 int32_t
 _rh_code_to_pct(const uint16_t rh_code)
 {
+    // refer to page 21 of the datasheet for more information.
     // returned value is in hundredths of a percent, in order to maintain two-
     // decimal precision while avoiding floating point numbers. in order to
     // get the proper decimal value in percent, divide the result by 100.
@@ -248,6 +269,7 @@ _rh_code_to_pct(const uint16_t rh_code)
 int32_t
 _temp_code_to_celsius(const uint16_t temp_code)
 {
+    // refer to page 22 of the datasheet for more information.
     // returned value is in hundredths of degrees, in order to maintain two-
     // decimal precision while avoiding floating point numbers. in order to
     // get the proper decimal value in celsius, divide the result by 100.
