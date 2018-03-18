@@ -79,7 +79,7 @@ static const uint8_t READ_FW_REVISION[]      = { 0x84, 0xB8 };
 // FUNCTION PROTOTYPES
 
 //
-// public
+// external
 
 esp_err_t readHumidity(const i2c_port_t i2c_num, int32_t *humidity);
 
@@ -100,17 +100,13 @@ esp_err_t getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status);
 esp_err_t softwareReset(const i2c_port_t i2c_num);
 
 //
-// private
+// internal
 
-esp_err_t _writeCommand(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-                        const uint8_t i2c_command);
+esp_err_t _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                             const uint8_t *i2c_command, const size_t nbytes);
 
-esp_err_t _writeCommandMulti(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-                             const uint8_t i2c_command0,
-                             const uint8_t i2c_command1);
-
-esp_err_t _readResults(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-                       uint16_t *bytes);
+esp_err_t _readResponseBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                             uint8_t *output, const size_t nbytes);
 
 int32_t   _rh_code_to_pct(const uint16_t rh_code);
 
