@@ -46,6 +46,7 @@
 
 #define SI7021_WRITE_USER_REG       0xE6
 #define SI7021_READ_USER_REG        0xE7
+#define SI7021_USER_REG_DEFAULT     0x3A
 
 
 // ---------------------------------------------------------------------------
@@ -91,18 +92,20 @@ esp_err_t readTemperatureAfterHumidity(const i2c_port_t i2c_num,
 esp_err_t readSensors(const i2c_port_t i2c_num,
                       struct si7021_reading *sensor_data);
 
+
 esp_err_t readSerialNumber(const i2c_port_t i2c_num, uint8_t *serial);
 
 esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
 
 
+esp_err_t readUserRegister(const i2c_port_t i2c_num, uint8_t *settings);
+
+esp_err_t writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings);
+
+esp_err_t resetUserRegister(const i2c_port_t i2c_num);
+
 esp_err_t softwareReset(const i2c_port_t i2c_num);
 
-esp_err_t setPrecision(const i2c_port_t i2c_num, const uint8_t setting);
-
-esp_err_t getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status);
-
-esp_err_t setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status);
 
 //
 // internal
@@ -111,11 +114,11 @@ esp_err_t _getSensorReading(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                             const uint8_t *i2c_command, const size_t nbytes,
                             int32_t *output, int32_t (*fn)(const uint16_t));
 
-esp_err_t _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-                             const uint8_t *i2c_command, const size_t nbytes);
-
 esp_err_t _readResponseBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                              uint8_t *output, const size_t nbytes);
+
+esp_err_t _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                             const uint8_t *i2c_command, const size_t nbytes);
 
 int32_t   _rh_code_to_pct(const uint16_t rh_code);
 

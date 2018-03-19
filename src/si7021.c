@@ -21,6 +21,7 @@
 // ---------------------------------------------------------------------------
 // EXTERNAL FUNCTIONS
 
+//
 // sensor readings
 
 esp_err_t
@@ -90,6 +91,7 @@ readSensors(const i2c_port_t i2c_num, struct si7021_reading *sensor_data)
     return ret;
 }
 
+//
 // device identification and information
 
 esp_err_t
@@ -152,31 +154,11 @@ readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
     return ESP_OK;
 }
 
-// other miscellaneous features
+//
+// user register settings
 
 esp_err_t
-softwareReset(const i2c_port_t i2c_num)
-{
-    const uint8_t command = SI7021_RESET;
-
-    // in order to perform a software reset on the sensor, we simply need to
-    // write out the single command byte.
-    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
-                                       &command, 1);
-
-    return ret;
-}
-
-esp_err_t
-setPrecision(const i2c_port_t i2c_num, const uint8_t setting)
-{
-    // TODO: implement me
-
-    return ESP_OK;
-}
-
-esp_err_t
-getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status)
+readUserRegister(const i2c_port_t i2c_num, uint8_t *settings)
 {
     const uint8_t command = SI7021_READ_USER_REG;
 
@@ -191,32 +173,56 @@ getHeaterStatus(const i2c_port_t i2c_num, uint8_t *status)
     // up to [VALUE NEEDED]ms to respond.
     vTaskDelay(100 / portTICK_RATE_MS);
 
-    // the heater status command returns a 16-bit value, so read the pair of
-    // bytes.
-    uint8_t buf[2];
-    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, buf, 2);
+    // the user register read command returns an 8-bit value, so read the
+    // single byte.
+    uint8_t reg;
+    ret = _readResponseBytes(i2c_num, SI7021_I2C_ADDR, &reg, 1);
 
     if (ret != ESP_OK)
         return ret;
 
-    // the first of the two bytes is the status of the heater, so write the
-    // value out to the status pointer.
-    *status = buf[0];
+    // write the byte read from the i2c bus out to the settings pointer.
+    *settings = reg;
 
     return ESP_OK;
 }
 
 esp_err_t
-setHeaterStatus(const i2c_port_t i2c_num, const uint8_t status)
+writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings)
 {
-    // to set the heater status, we need to write out the write register
-    // command as well as the status of the heater to apply.
-    const uint8_t command[] = { SI7021_WRITE_USER_REG, status };
+    // construct the appropraite user settings command by sending both the
+    // write user register command, as well as the settings byte to apply.
+    const uint8_t command[] = { SI7021_WRITE_USER_REG, settings };
 
-    // simply write out the two bytes defined above to set the status of the
-    // heater.
     esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
                                        command, 2);
+
+    return ret;
+}
+
+esp_err_t
+resetUserRegister(const i2c_port_t i2c_num)
+{
+    // in order to reset the user register, we simply need to write out the
+    // write user register comamand byte followed by the default register
+    // settings.
+    esp_err_t ret = writeUserRegister(i2c_num, SI7021_USER_REG_DEFAULT);
+
+    return ret;
+}
+
+//
+// other miscellaneous features
+
+esp_err_t
+softwareReset(const i2c_port_t i2c_num)
+{
+    const uint8_t command = SI7021_RESET;
+
+    // in order to perform a software reset on the sensor, we simply need to
+    // write out the single command byte.
+    esp_err_t ret = _writeCommandBytes(i2c_num, SI7021_I2C_ADDR,
+                                       &command, 1);
 
     return ret;
 }
@@ -260,34 +266,6 @@ _getSensorReading(const i2c_port_t i2c_num, const uint8_t i2c_addr,
 }
 
 esp_err_t
-_writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
-                   const uint8_t *i2c_command, const size_t nbytes)
-{
-    // create and initialize a command link prior to commanding the i2c master
-    // to generate a start signal.
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-
-    // write the 7-bit address of the sensor to the bus, using the last bit to
-    // indicate we are performing a write. write each of the the provided
-    // command bytes to the queue, the number of which is specified by nbytes..
-    i2c_master_write_byte(cmd, i2c_addr << 1 | I2C_MASTER_WRITE, ACK_CHECK_EN);
-
-    for (size_t i = 0; i < nbytes; i++)
-        i2c_master_write_byte(cmd, i2c_command[i], ACK_CHECK_EN);
-
-    // command the i2c master to generate a stop signal. send all queued
-    // commands, blocking until all commands have been sent. note that this is
-    // *not* thread-safe. finally, free the i2c command link.
-    i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd,
-                                         I2C_TIMEOUT_MS / portTICK_RATE_MS);
-    i2c_cmd_link_delete(cmd);
-
-    return ret;
-}
-
-esp_err_t
 _readResponseBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
                    uint8_t *output, const size_t nbytes)
 {
@@ -305,6 +283,34 @@ _readResponseBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
         i2c_master_read_byte(cmd, &output[i], i == nbytes - 1
                                               ? NACK_VAL
                                               : ACK_VAL);
+
+    // command the i2c master to generate a stop signal. send all queued
+    // commands, blocking until all commands have been sent. note that this is
+    // *not* thread-safe. finally, free the i2c command link.
+    i2c_master_stop(cmd);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd,
+                                         I2C_TIMEOUT_MS / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+
+    return ret;
+}
+
+esp_err_t
+_writeCommandBytes(const i2c_port_t i2c_num, const uint8_t i2c_addr,
+                   const uint8_t *i2c_command, const size_t nbytes)
+{
+    // create and initialize a command link prior to commanding the i2c master
+    // to generate a start signal.
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+
+    // write the 7-bit address of the sensor to the bus, using the last bit to
+    // indicate we are performing a write. write each of the the provided
+    // command bytes to the queue, the number of which is specified by nbytes..
+    i2c_master_write_byte(cmd, i2c_addr << 1 | I2C_MASTER_WRITE, ACK_CHECK_EN);
+
+    for (size_t i = 0; i < nbytes; i++)
+        i2c_master_write_byte(cmd, i2c_command[i], ACK_CHECK_EN);
 
     // command the i2c master to generate a stop signal. send all queued
     // commands, blocking until all commands have been sent. note that this is
