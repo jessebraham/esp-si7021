@@ -102,8 +102,6 @@ esp_err_t readUserRegister(const i2c_port_t i2c_num, uint8_t *settings);
 
 esp_err_t writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings);
 
-esp_err_t resetUserRegister(const i2c_port_t i2c_num);
-
 esp_err_t softwareReset(const i2c_port_t i2c_num);
 
 

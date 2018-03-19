@@ -193,17 +193,6 @@ writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings)
     return ret;
 }
 
-esp_err_t
-resetUserRegister(const i2c_port_t i2c_num)
-{
-    // in order to reset the user register, we simply need to write out the
-    // write user register comamand byte followed by the default register
-    // settings.
-    esp_err_t ret = writeUserRegister(i2c_num, SI7021_USER_REG_DEFAULT);
-
-    return ret;
-}
-
 //
 // other miscellaneous features
 
