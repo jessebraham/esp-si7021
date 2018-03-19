@@ -24,29 +24,77 @@
 // ---------------------------------------------------------------------------
 // DEFINES
 
-#define ACK_CHECK_EN                0x1
-#define ACK_CHECK_DIS               0x0
-#define ACK_VAL                     0x0
-#define NACK_VAL                    0x1
+//
+// i2c related values
+
 #define I2C_TIMEOUT_MS              1000
 
+#define ACK_CHECK_EN                0x1
+#define ACK_CHECK_DIS               0x0
+
+#define ACK_VAL                     0x0
+#define NACK_VAL                    0x1
+
 #define SI7021_I2C_ADDR             0x40
+
+
+//
+// sensor commands
 
 #define SI7021_READ_RH_HOLD         0xE5
 #define SI7021_READ_RH_NOHOLD       0xF5
 
 #define SI7021_READ_TEMP_HOLD       0xE3
 #define SI7021_READ_TEMP_NOHOLD     0xF3
+
 #define SI7021_READ_TEMP_PREV_RH    0xE0
+
+
+//
+// register commands
+
+#define SI7021_WRITE_USER_REG       0xE6
+#define SI7021_READ_USER_REG        0xE7
+
+#define SI7021_WRITE_HTRE_REG       0x51
+#define SI7021_READ_HTRE_REG        0x11
 
 #define SI7021_HEATER_ON            0x3E
 #define SI7021_HEATER_OFF           0x3A
 
+
+//
+// miscellaneous commands
+
 #define SI7021_RESET                0xFE
 
-#define SI7021_WRITE_USER_REG       0xE6
-#define SI7021_READ_USER_REG        0xE7
+
+//
+// user register settings
+
+//
+// D7    D6    D5    D4    D3    D2    D1    D0
+// RES1  VDDS  RSVD  RSVD  RSVD  HTRE  RSVD  RES0
+//
+
 #define SI7021_USER_REG_DEFAULT     0x3A
+
+#define SI7021_12BHUM_14BTEMP       0x00
+#define SI7021_8BHUM_12BTEMP        0x01
+#define SI7021_10BHUM_13BTEMP       0x80
+#define SI7021_11BHUM_11BTEMP       0x81
+
+#define SI7021_VDD_STAT_OK          0x00
+#define SI7021_VDD_STAT_LOW         0x40
+
+
+//
+// heater control register settings
+
+//
+// D7    D6    D5    D4    D3    D2    D1    D0
+// RSVD  RSVD  RSVD  RSVD  HTR3  HTR2  HTR1  HTR0
+//
 
 
 // ---------------------------------------------------------------------------
@@ -101,6 +149,13 @@ esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
 esp_err_t readUserRegister(const i2c_port_t i2c_num, uint8_t *settings);
 
 esp_err_t writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings);
+
+
+esp_err_t readHeaterRegister(const i2c_port_t i2c_num, uint8_t *settings);
+
+esp_err_t writeHeaterRegister(const i2c_port_t i2c_num,
+                              const uint8_t settings);
+
 
 esp_err_t softwareReset(const i2c_port_t i2c_num);
 

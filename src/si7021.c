@@ -193,6 +193,53 @@ writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings)
     return ret;
 }
 
+
+//
+// heater control register settings
+
+esp_err_t
+readHeaterRegister(const i2c_port_t i2c_num, uint8_t *settings)
+{
+    const uint8_t command = SI7021_READ_HTRE_REG;
+
+    // write the single read register command byte to the i2c bus.
+    esp_err_t ret = _writeCommandBytes(i2c_num, &command, 1);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // delay for 100ms between write and read calls, and the sensor can take
+    // up to [VALUE NEEDED]ms to respond.
+    vTaskDelay(100 / portTICK_RATE_MS);
+
+    // the heater control register read command returns an 8-bit value, so
+    // read the single byte.
+    uint8_t reg;
+    ret = _readResponseBytes(i2c_num, &reg, 1);
+
+    if (ret != ESP_OK)
+        return ret;
+
+    // write the byte read from the i2c bus out to the settings pointer.
+    *settings = reg;
+
+    return ESP_OK;
+}
+
+esp_err_t
+writeHeaterRegister(const i2c_port_t i2c_num, const uint8_t settings)
+{
+    // construct the appropraite user settings command by sending both the
+    // write heater control register command, as well as the settings byte to
+    // apply.
+    const uint8_t command[] = { SI7021_WRITE_HTRE_REG, settings };
+
+    esp_err_t ret = _writeCommandBytes(i2c_num, command, 2);
+
+    return ret;
+}
+
+
 //
 // other miscellaneous features
 
