@@ -12,7 +12,7 @@ An [ESP-IDF](https://github.com/espressif/esp-idf/) component for the Silicon La
 
 ### Requirements
 
-This component requires the [ESP-IDF](https://github.com/espressif/esp-idf/) IoT Development Environment.
+This component requires the [ESP-IDF](https://github.com/espressif/esp-idf/) IoT Development Environment, and has no other external dependencies.
 
 
 ### Example
@@ -21,7 +21,12 @@ TODO: provide an example
 
 
 ### To Do
-- [ ] ability to specify "Hold Master Mode" or "No Hold Master Mode" when reading sensor  
-- [ ] comment all function prototypes in header file  
+
+- [ ] implement an easier method of manipulating the user and heater control registers  
+  - [ ] user register - measurement resolution  
+  - [ ] user register - vdd status  
+  - [ ] user register - heater status  
+  - [ ] heater control register - heater current  
+- [ ] properly comment header and source files  
 - [ ] write documentation  
 - [ ] provide example application  
