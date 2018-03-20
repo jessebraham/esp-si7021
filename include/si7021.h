@@ -172,8 +172,9 @@ esp_err_t softwareReset(const i2c_port_t i2c_num);
 // internal
 
 esp_err_t _getSensorReading(const i2c_port_t i2c_num,
-                            const uint8_t *i2c_command, const size_t nbytes,
-                            int32_t *output, int32_t (*fn)(const uint16_t));
+                            const uint8_t *i2c_command, int32_t *output,
+                            int32_t (*fn)(const uint16_t));
+
 
 esp_err_t _readResponseBytes(const i2c_port_t i2c_num,
                              uint8_t *output, const size_t nbytes);

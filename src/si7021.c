@@ -32,8 +32,8 @@ readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
     // read the relative humidity from the sensor. write the value returned
     // out to the humidity pointer, and use the _rh_code_to_pct function to
     // convert the humidity code to a percentage value.
-    esp_err_t ret = _getSensorReading(i2c_num, &command, 1,
-                                      humidity, &_rh_code_to_pct);
+    esp_err_t ret = _getSensorReading(i2c_num, &command, humidity,
+                                      &_rh_code_to_pct);
 
     return ret;
 }
@@ -46,8 +46,8 @@ readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
     // read the temperature from the sensor. write the value returned out to
     // the temperature pointer, and use the _temp_code_to_celsius function to
     // convert the temperature code to a value in degrees celsius.
-    esp_err_t ret = _getSensorReading(i2c_num, &command, 1,
-                                      temperature, &_temp_code_to_celsius);
+    esp_err_t ret = _getSensorReading(i2c_num, &command, temperature,
+                                      &_temp_code_to_celsius);
 
     return ret;
 }
@@ -60,8 +60,8 @@ readTemperatureAfterHumidity(const i2c_port_t i2c_num, int32_t *temperature)
     // read the temperature from the sensor. write the value returned out to
     // the temperature pointer, and use the _temp_code_to_celsius function to
     // convert the temperature code to a value in degrees celsius.
-    esp_err_t ret = _getSensorReading(i2c_num, &command, 1,
-                                      temperature, &_temp_code_to_celsius);
+    esp_err_t ret = _getSensorReading(i2c_num, &command, temperature,
+                                      &_temp_code_to_celsius);
 
     return ret;
 }
@@ -258,13 +258,12 @@ softwareReset(const i2c_port_t i2c_num)
 // INTERNAL FUNCTIONS
 
 esp_err_t
-_getSensorReading(const i2c_port_t i2c_num,
-                  const uint8_t *i2c_command, const size_t nbytes,
+_getSensorReading(const i2c_port_t i2c_num, const uint8_t *i2c_command,
                   int32_t *output, int32_t (*fn)(const uint16_t))
 {
     // write the specified number of provided command bytes to the i2c bus,
     // targetting the address of the Si7021.
-    esp_err_t ret = _writeCommandBytes(i2c_num, i2c_command, nbytes);
+    esp_err_t ret = _writeCommandBytes(i2c_num, i2c_command, 1);
 
     if (ret != ESP_OK)
         return ret;
@@ -291,8 +290,8 @@ _getSensorReading(const i2c_port_t i2c_num,
 }
 
 esp_err_t
-_readResponseBytes(const i2c_port_t i2c_num,
-                   uint8_t *output, const size_t nbytes)
+_readResponseBytes(const i2c_port_t i2c_num, uint8_t *output,
+                   const size_t nbytes)
 {
     // create and initialize a command link prior to commanding the i2c master
     // to generate a start signal.
@@ -322,8 +321,8 @@ _readResponseBytes(const i2c_port_t i2c_num,
 }
 
 esp_err_t
-_writeCommandBytes(const i2c_port_t i2c_num,
-                   const uint8_t *i2c_command, const size_t nbytes)
+_writeCommandBytes(const i2c_port_t i2c_num, const uint8_t *i2c_command,
+                   const size_t nbytes)
 {
     // create and initialize a command link prior to commanding the i2c master
     // to generate a start signal.
