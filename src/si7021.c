@@ -27,8 +27,7 @@
 esp_err_t
 readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 {
-    // TODO: implement a way of specifying HOLD or NOHOLD
-    const uint8_t command = SI7021_READ_RH_HOLD;
+    const uint8_t command = SI7021_READ_RH;
 
     // read the relative humidity from the sensor. write the value returned
     // out to the humidity pointer, and use the _rh_code_to_pct function to
@@ -42,8 +41,7 @@ readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 esp_err_t
 readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
 {
-    // TODO: implement a way of specifying HOLD or NOHOLD
-    const uint8_t command = SI7021_READ_TEMP_HOLD;
+    const uint8_t command = SI7021_READ_TEMP;
 
     // read the temperature from the sensor. write the value returned out to
     // the temperature pointer, and use the _temp_code_to_celsius function to
@@ -334,7 +332,7 @@ _writeCommandBytes(const i2c_port_t i2c_num,
 
     // write the 7-bit address of the sensor to the bus, using the last bit to
     // indicate we are performing a write. write each of the the provided
-    // command bytes to the queue, the number of which is specified by nbytes..
+    // command bytes to the queue, the number of which is specified by nbytes.
     i2c_master_write_byte(cmd, SI7021_I2C_ADDR << 1 | I2C_MASTER_WRITE,
                           ACK_CHECK_EN);
 

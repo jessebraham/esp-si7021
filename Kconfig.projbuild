@@ -1,5 +1,10 @@
-menu "esp-si7021"
+menu esp-si7021
 
-
+config USE_CLOCK_STRETCHING
+    bool "Use I2C clock stretching"
+    default n
+    help
+        If enabled, use Hold Master Mode (use clock stretching). Otherwise,
+        use No Hold Master Mode (don't acknowledge read requests).
 
 endmenu

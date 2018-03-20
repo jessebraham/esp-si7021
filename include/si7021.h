@@ -20,6 +20,8 @@
 
 #include <stdint.h>
 
+#include "sdkconfig.h"
+
 
 // ---------------------------------------------------------------------------
 // DEFINES
@@ -41,11 +43,17 @@
 //
 // sensor commands
 
-#define SI7021_READ_RH_HOLD         0xE5
-#define SI7021_READ_RH_NOHOLD       0xF5
+#if CONFIG_USE_CLOCK_STRETCHING
+    #define SI7021_READ_RH          0xE5
+#else
+    #define SI7021_READ_RH          0xF5
+#endif
 
-#define SI7021_READ_TEMP_HOLD       0xE3
-#define SI7021_READ_TEMP_NOHOLD     0xF3
+#if CONFIG_USE_CLOCK_STRETCHING
+    #define SI7021_READ_TEMP        0xE3
+#else
+    #define SI7021_READ_TEMP        0xF3
+#endif
 
 #define SI7021_READ_TEMP_PREV_RH    0xE0
 
