@@ -148,13 +148,12 @@ readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision)
 }
 
 //
-// user register settings
+// register settings
 
 esp_err_t
-readUserRegister(const i2c_port_t i2c_num, uint8_t *settings)
+readRegister(const i2c_port_t i2c_num, const uint8_t command,
+             uint8_t *settings)
 {
-    const uint8_t command = SI7021_READ_USER_REG;
-
     // write the single read register command byte to the i2c bus.
     esp_err_t ret = _writeCommandBytes(i2c_num, &command, 1);
 
@@ -165,8 +164,8 @@ readUserRegister(const i2c_port_t i2c_num, uint8_t *settings)
     // up to [VALUE NEEDED]ms to respond.
     vTaskDelay(100 / portTICK_RATE_MS);
 
-    // the user register read command returns an 8-bit value, so read the
-    // single byte.
+    // the register read commands return an 8-bit value, so read the single
+    // byte.
     uint8_t reg;
     ret = _readResponseBytes(i2c_num, &reg, 1);
 
@@ -180,63 +179,18 @@ readUserRegister(const i2c_port_t i2c_num, uint8_t *settings)
 }
 
 esp_err_t
-writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings)
+writeRegister(const i2c_port_t i2c_num, const uint8_t command,
+              const uint8_t settings)
 {
-    // construct the appropraite user settings command by sending both the
-    // write user register command, as well as the settings byte to apply.
-    const uint8_t command[] = { SI7021_WRITE_USER_REG, settings };
+    // construct the full command by appending the settings byte to the
+    // command byte.
+    const uint8_t full_command[] = { command, settings };
 
-    esp_err_t ret = _writeCommandBytes(i2c_num, command, 2);
+    // write the full command to the i2c bus to apply the settings.
+    esp_err_t ret = _writeCommandBytes(i2c_num, full_command, 2);
 
     return ret;
 }
-
-
-//
-// heater control register settings
-
-esp_err_t
-readHeaterRegister(const i2c_port_t i2c_num, uint8_t *settings)
-{
-    const uint8_t command = SI7021_READ_HTRE_REG;
-
-    // write the single read register command byte to the i2c bus.
-    esp_err_t ret = _writeCommandBytes(i2c_num, &command, 1);
-
-    if (ret != ESP_OK)
-        return ret;
-
-    // delay for 100ms between write and read calls, and the sensor can take
-    // up to [VALUE NEEDED]ms to respond.
-    vTaskDelay(100 / portTICK_RATE_MS);
-
-    // the heater control register read command returns an 8-bit value, so
-    // read the single byte.
-    uint8_t reg;
-    ret = _readResponseBytes(i2c_num, &reg, 1);
-
-    if (ret != ESP_OK)
-        return ret;
-
-    // write the byte read from the i2c bus out to the settings pointer.
-    *settings = reg;
-
-    return ESP_OK;
-}
-
-esp_err_t
-writeHeaterRegister(const i2c_port_t i2c_num, const uint8_t settings)
-{
-    // construct the appropraite user settings command by sending both the
-    // write heater control register command, as well as the settings byte to
-    // apply.
-    const uint8_t command[] = { SI7021_WRITE_HTRE_REG, settings };
-
-    esp_err_t ret = _writeCommandBytes(i2c_num, command, 2);
-
-    return ret;
-}
-
 
 //
 // other miscellaneous features
@@ -256,6 +210,9 @@ softwareReset(const i2c_port_t i2c_num)
 
 // ---------------------------------------------------------------------------
 // INTERNAL FUNCTIONS
+
+//
+// generic tasks
 
 esp_err_t
 _getSensorReading(const i2c_port_t i2c_num, const uint8_t *i2c_command,
@@ -289,6 +246,9 @@ _getSensorReading(const i2c_port_t i2c_num, const uint8_t *i2c_command,
     return ESP_OK;
 }
 
+//
+// hardware interaction
+
 esp_err_t
 _readResponseBytes(const i2c_port_t i2c_num, uint8_t *output,
                    const size_t nbytes)
@@ -305,9 +265,11 @@ _readResponseBytes(const i2c_port_t i2c_num, uint8_t *output,
                           ACK_CHECK_EN);
 
     for (size_t i = 0; i < nbytes; i++)
+    {
         i2c_master_read_byte(cmd, &output[i], i == nbytes - 1
                                               ? NACK_VAL
                                               : ACK_VAL);
+    }
 
     // command the i2c master to generate a stop signal. send all queued
     // commands, blocking until all commands have been sent. note that this is
@@ -348,6 +310,9 @@ _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t *i2c_command,
 
     return ret;
 }
+
+//
+// conversion functions
 
 int32_t
 _rh_code_to_pct(const uint16_t rh_code)

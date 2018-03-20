@@ -61,11 +61,11 @@
 //
 // register commands
 
-#define SI7021_WRITE_USER_REG       0xE6
-#define SI7021_READ_USER_REG        0xE7
+#define SI7021_USER_REG_READ        0xE7
+#define SI7021_USER_REG_WRITE       0xE6
 
-#define SI7021_WRITE_HTRE_REG       0x51
-#define SI7021_READ_HTRE_REG        0x11
+#define SI7021_HTRE_REG_READ        0x11
+#define SI7021_HTRE_REG_WRITE       0x51
 
 #define SI7021_HEATER_ON            0x3E
 #define SI7021_HEATER_OFF           0x3A
@@ -84,16 +84,6 @@
 // D7    D6    D5    D4    D3    D2    D1    D0
 // RES1  VDDS  RSVD  RSVD  RSVD  HTRE  RSVD  RES0
 //
-
-#define SI7021_USER_REG_DEFAULT     0x3A
-
-#define SI7021_12BHUM_14BTEMP       0x00
-#define SI7021_8BHUM_12BTEMP        0x01
-#define SI7021_10BHUM_13BTEMP       0x80
-#define SI7021_11BHUM_11BTEMP       0x81
-
-#define SI7021_VDD_STAT_OK          0x00
-#define SI7021_VDD_STAT_LOW         0x40
 
 
 //
@@ -154,15 +144,11 @@ esp_err_t readSerialNumber(const i2c_port_t i2c_num, uint8_t *serial);
 esp_err_t readFirmwareRevision(const i2c_port_t i2c_num, uint8_t *revision);
 
 
-esp_err_t readUserRegister(const i2c_port_t i2c_num, uint8_t *settings);
+esp_err_t readRegister(const i2c_port_t i2c_num, const uint8_t command,
+                       uint8_t *settings);
 
-esp_err_t writeUserRegister(const i2c_port_t i2c_num, const uint8_t settings);
-
-
-esp_err_t readHeaterRegister(const i2c_port_t i2c_num, uint8_t *settings);
-
-esp_err_t writeHeaterRegister(const i2c_port_t i2c_num,
-                              const uint8_t settings);
+esp_err_t writeRegister(const i2c_port_t i2c_num, const uint8_t command,
+                        const uint8_t settings);
 
 
 esp_err_t softwareReset(const i2c_port_t i2c_num);
@@ -181,6 +167,7 @@ esp_err_t _readResponseBytes(const i2c_port_t i2c_num,
 
 esp_err_t _writeCommandBytes(const i2c_port_t i2c_num,
                              const uint8_t *i2c_command, const size_t nbytes);
+
 
 int32_t   _rh_code_to_pct(const uint16_t rh_code);
 
