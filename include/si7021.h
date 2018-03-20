@@ -104,8 +104,8 @@
 
 struct si7021_reading
 {
-    int32_t humidity;
-    int32_t temperature;
+    float humidity;
+    float temperature;
 };
 
 
@@ -128,12 +128,12 @@ static const uint8_t READ_FW_REVISION[]      = { 0x84, 0xB8 };
 //
 // external
 
-esp_err_t readHumidity(const i2c_port_t i2c_num, int32_t *humidity);
+esp_err_t readHumidity(const i2c_port_t i2c_num, float *humidity);
 
-esp_err_t readTemperature(const i2c_port_t i2c_num, int32_t *temperature);
+esp_err_t readTemperature(const i2c_port_t i2c_num, float *temperature);
 
 esp_err_t readTemperatureAfterHumidity(const i2c_port_t i2c_num,
-                                       int32_t *temperature);
+                                       float *temperature);
 
 esp_err_t readSensors(const i2c_port_t i2c_num,
                       struct si7021_reading *sensor_data);
@@ -158,8 +158,8 @@ esp_err_t softwareReset(const i2c_port_t i2c_num);
 // internal
 
 esp_err_t _getSensorReading(const i2c_port_t i2c_num,
-                            const uint8_t *i2c_command, int32_t *output,
-                            int32_t (*fn)(const uint16_t));
+                            const uint8_t *i2c_command, float *output,
+                            float (*fn)(const uint16_t));
 
 
 esp_err_t _readResponseBytes(const i2c_port_t i2c_num,
@@ -169,9 +169,9 @@ esp_err_t _writeCommandBytes(const i2c_port_t i2c_num,
                              const uint8_t *i2c_command, const size_t nbytes);
 
 
-int32_t   _rh_code_to_pct(const uint16_t rh_code);
+float     _rh_code_to_pct(const uint16_t rh_code);
 
-int32_t   _temp_code_to_celsius(const uint16_t temp_code);
+float     _temp_code_to_celsius(const uint16_t temp_code);
 
 
 #endif

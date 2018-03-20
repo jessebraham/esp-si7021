@@ -25,7 +25,7 @@
 // sensor readings
 
 esp_err_t
-readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
+readHumidity(const i2c_port_t i2c_num, float *humidity)
 {
     const uint8_t command = SI7021_READ_RH;
 
@@ -39,7 +39,7 @@ readHumidity(const i2c_port_t i2c_num, int32_t *humidity)
 }
 
 esp_err_t
-readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
+readTemperature(const i2c_port_t i2c_num, float *temperature)
 {
     const uint8_t command = SI7021_READ_TEMP;
 
@@ -53,7 +53,7 @@ readTemperature(const i2c_port_t i2c_num, int32_t *temperature)
 }
 
 esp_err_t
-readTemperatureAfterHumidity(const i2c_port_t i2c_num, int32_t *temperature)
+readTemperatureAfterHumidity(const i2c_port_t i2c_num, float *temperature)
 {
     const uint8_t command = SI7021_READ_TEMP_PREV_RH;
 
@@ -216,7 +216,7 @@ softwareReset(const i2c_port_t i2c_num)
 
 esp_err_t
 _getSensorReading(const i2c_port_t i2c_num, const uint8_t *i2c_command,
-                  int32_t *output, int32_t (*fn)(const uint16_t))
+                  float *output, float (*fn)(const uint16_t))
 {
     // write the specified number of provided command bytes to the i2c bus,
     // targetting the address of the Si7021.
@@ -314,19 +314,16 @@ _writeCommandBytes(const i2c_port_t i2c_num, const uint8_t *i2c_command,
 //
 // conversion functions
 
-int32_t
+float
 _rh_code_to_pct(const uint16_t rh_code)
 {
     // refer to page 21 of the datasheet for more information.
-    return (( (125 * rh_code) >> 16 ) - 6);
+    return (( (125.0 * rh_code) / 65536.0 ) - 6.0);
 }
 
-int32_t
+float
 _temp_code_to_celsius(const uint16_t temp_code)
 {
     // refer to page 22 of the datasheet for more information.
-    // returned value is in hundredths of degrees, in order to maintain two-
-    // decimal precision while avoiding floating point numbers. in order to
-    // get the proper decimal value in celsius, divide the result by 100.
-    return (( (17572 * temp_code) >> 16 ) - 4685);
+    return (( (175.72 * temp_code) / 65536.0 ) - 46.85);
 }
