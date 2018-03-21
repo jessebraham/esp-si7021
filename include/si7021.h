@@ -67,12 +67,12 @@
 #define SI7021_HTRE_REG_READ        0x11
 #define SI7021_HTRE_REG_WRITE       0x51
 
-#define SI7021_HEATER_ON            0x3E
-#define SI7021_HEATER_OFF           0x3A
-
 
 //
 // miscellaneous commands
+
+#define SI7021_HEATER_ON            0x3E
+#define SI7021_HEATER_OFF           0x3A
 
 #define SI7021_RESET                0xFE
 
@@ -157,8 +157,8 @@ esp_err_t softwareReset(const i2c_port_t i2c_num);
 //
 // internal
 
-esp_err_t _getSensorReading(const i2c_port_t i2c_num,
-                            const uint8_t *i2c_command, float *output,
+esp_err_t _getSensorReading(const i2c_port_t num,
+                            const uint8_t i2c_command, float *output,
                             float (*fn)(const uint16_t));
 
 
