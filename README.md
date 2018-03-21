@@ -10,6 +10,18 @@ An [ESP-IDF](https://github.com/espressif/esp-idf/) component for the Silicon La
 - [SparkFun Breakout Board](https://www.sparkfun.com/products/13763)  
 
 
+### Features
+
+The following features have been implemented:  
+
+- Measure Relative Humidity  
+- Measure Temperature  
+- Read and Write Registers  
+- Read the Electronic Serial Number  
+- Read the Firmware Revision  
+- Perform a software reset of the sensor  
+
+
 ### Requirements
 
 This component requires the [ESP-IDF](https://github.com/espressif/esp-idf/) IoT Development Environment, and has no other external dependencies.
@@ -22,6 +34,7 @@ TODO: provide an example
 
 ### To Do
 
+- [ ] acknowledge the fact that checksums are, in fact, a thing  
 - [ ] implement an easier method of manipulating the user and heater control registers  
   - [ ] user register - measurement resolution  
   - [ ] user register - vdd status  
