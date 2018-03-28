@@ -1,5 +1,5 @@
 /* ************************************************************************ *
- * esp-si7021/si7021.h
+ * include/si7021.h
  * 
  * Author:      Jesse Braham <jesse@beta7.io>
  * License:     MIT (see LICENSE.txt)
@@ -96,10 +96,6 @@
 
 
 // ---------------------------------------------------------------------------
-// MACROS
-
-
-// ---------------------------------------------------------------------------
 // STRUCTURES
 
 struct si7021_reading
@@ -116,10 +112,6 @@ static const uint8_t READ_ID_FIRST_ACCESS[]  = { 0xFA, 0x0F };
 static const uint8_t READ_ID_SECOND_ACCESS[] = { 0xFC, 0xC9 };
 
 static const uint8_t READ_FW_REVISION[]      = { 0x84, 0xB8 };
-
-
-// ---------------------------------------------------------------------------
-// GLOBALS
 
 
 // ---------------------------------------------------------------------------
@@ -157,21 +149,75 @@ esp_err_t softwareReset(const i2c_port_t i2c_num);
 //
 // internal
 
+/**
+ * perform a sensor reading, and write the value in its correct units to the
+ * specified location in memory.
+ * 
+ * @param   i2c_num         the I2C port to read from
+ * @param   i2c_command     specify which reading to perform
+ * @param   output          the location in memory in which to write the
+ *                          resulting value
+ * @param   fn              a pointer to the conversion function to use on the
+ *                          raw value read from the sensor
+ * 
+ * @returns esp_err_t       the success status of the read
+ */
 esp_err_t _getSensorReading(const i2c_port_t num,
                             const uint8_t i2c_command, float *output,
                             float (*fn)(const uint16_t));
 
 
+/**
+ * read the specified number of bytes from the I2C port specified to the
+ * provided location in memory.
+ * 
+ * @param   i2c_num         the I2C port to read from
+ * @param   i2c_command     a pointer to the location in memory in which to
+ *                          write the data to
+ * @param   nbytes          the number of bytes to read from the queue
+ * 
+ * @returns esp_err_t       the success status of the read
+ */
 esp_err_t _readResponseBytes(const i2c_port_t i2c_num,
                              uint8_t *output, const size_t nbytes);
 
+/**
+ * write the specified number of bytes from the provided location in memory to
+ * the I2C port specified.
+ * 
+ * @param   i2c_num         the I2C port to write to
+ * @param   i2c_command     a pointer to the location in memory containing the
+ *                          data byte(s) to write
+ * @param   nbytes          the number of bytes to write to the queue
+ * 
+ * @returns esp_err_t       the success status of the write
+ */
 esp_err_t _writeCommandBytes(const i2c_port_t i2c_num,
                              const uint8_t *i2c_command, const size_t nbytes);
 
 
-float     _rh_code_to_pct(const uint16_t rh_code);
+/**
+ * Given a 'humidity code' read from the sensor, convert the code to a decimal
+ * value representing the relative humidity in percent, and return it.
+ * 
+ * @param   rh_code     the encoded relative humidity reading from the sensor
+ * 
+ * @returns float       the current relative humidity as read by the sensor,
+ *                      in percent
+ */
+float _rh_code_to_pct(const uint16_t rh_code);
 
-float     _temp_code_to_celsius(const uint16_t temp_code);
+/**
+ * Given a 'temperature code' read from the sensor, convert the code to a
+ * decimal value representing the temperature in degrees celsius, and return
+ * it.
+ * 
+ * @param   temp_code   the encoded temperature reading from the sensor
+ * 
+ * @returns float       the current temperature as read by the sensor, in
+ *                      degrees celsius
+ */
+float _temp_code_to_celsius(const uint16_t temp_code);
 
 
 #endif
